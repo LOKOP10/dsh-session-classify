@@ -1,0 +1,10 @@
+# dsh-session-classify 的 bundle 层。
+#
+# 插入插件入口，让 profile 组合时把「会话分类」注册进 Host。
+# 想换 dshHome（例如指向另一个 DSH 主目录），在本 profile 的
+# cordis.patch.yml 里用同一个 id 覆盖 config。
+- insert:
+    - id: session-classify
+      name: dsh-session-classify
+      config:
+        enabled: true

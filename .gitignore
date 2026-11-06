@@ -1,0 +1,10 @@
+# dsh-ops 面板的运行日志（本机产物，不入库）
+.dsh-ops/
+
+# 依赖
+node_modules/
+
+# 备份与日志
+*.bak
+*.bak-*
+*.log

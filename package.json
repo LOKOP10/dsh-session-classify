@@ -1,0 +1,58 @@
+{
+  "name": "dsh-session-classify",
+  "displayName": "DSH 会话分类",
+  "description": "用文件夹给 DSH 会话自行分类：自建文件夹、拖拽归入、随时查看全部会话（含已归档的对话），并可直接归档 / 取消归档。",
+  "version": "0.1.0",
+  "author": "LOKOP01",
+  "type": "module",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": ">=0.2.0-rc.2"
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "node test/selftest.mjs"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "lib",
+    "test",
+    "locale",
+    "icon.svg",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "deepseek",
+    "session",
+    "folder",
+    "会话",
+    "分类",
+    "归档"
+  ],
+  "license": "MIT",
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ]
+    }
+  }
+}
