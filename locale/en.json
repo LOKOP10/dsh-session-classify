@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Session folders",
-    "description": "Sort DSH sessions into your own folders, including archived conversations, and archive or unarchive them from the same panel."
+    "title": "Session Manage",
+    "description": "Session manager panel: file DSH sessions by workspace or folder, bulk rename, archive, delete, with a trash and restore."
   }
 }

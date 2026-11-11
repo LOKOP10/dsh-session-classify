@@ -1,8 +1,8 @@
-# dsh-session-classify
+# dsh-session-manage
 
 用**文件夹**给 DeepSeek Harness 的会话自行分类，并顺手管理它们的去留：归档的对话、要删的对话，都在同一个面板里。
 
-本插件是 `dsh-session-classify` 与 `dsh-session-manager` 的合并体——后者已不再需要，删除会话、回收站、恢复这些能力都在这里。
+> 本插件原名 `dsh-session-classify`，2026-11-11 改名为 **`dsh-session-manage`**（插件 id `session-classify` → `session-manage`，显示名改为「Session Manage」）。改名时一并包含了已废弃的 `dsh-session-manager` 的删除 / 回收站能力，数据文件与回收站清单都保留旧名兼容读取，见「数据放在哪」。
 
 ## 功能
 
@@ -16,7 +16,7 @@
 - 列表默认包含**已归档**的对话，标「已归档」徽章，可一键取消归档找回；
 - 搜索（标题 / 工作区 / id）与「全部 / 未归档 / 已归档」筛选。
 
-> 旧版本的自建文件夹数据仍留在 `<DSH_HOME>/storages/dsh-classify.json` 里，但界面不再使用，也不影响任何会话。
+> 早期版本的自建文件夹数据只作只读兼容，界面不再使用，也不影响任何会话。
 
 **会话管理**
 
@@ -35,7 +35,9 @@
 dsh plugin --profile <profile> add F:/18752/Documents/plugin/classify
 ```
 
-装完重启 DSH，然后**刷新一次页面**（Ctrl+R），侧边栏出现「会话分类」图标。
+装完重启 DSH，然后**刷新一次页面**（Ctrl+R），侧边栏出现「Session Manage」图标。
+
+> 包名与目录名可以不一致：本机源码目录仍叫 `classify`（`profile` 里是 `"dsh-session-manage": "link:F:/18752/Documents/plugin/classify"`），插件身份以 `package.json` 的 `name` 为准。
 
 > 改了 `lib/client.js` 之后同样需要刷新页面或重启 DSH；宿主半侧（`lib/index.js`）的热重载取决于 profile 里 `hmr.root` 是否包含本目录。
 
@@ -43,7 +45,7 @@ dsh plugin --profile <profile> add F:/18752/Documents/plugin/classify
 
 ### 面板
 
-侧边栏点「会话分类」：
+侧边栏点「Session Manage」：
 
 - **左栏**：全部会话 / 未分类 / 各文件夹 / 回收站。
 - **右栏**：会话行。勾选框用于批量；「⋯」展开后可移入文件夹、重命名、打开、归档、删除、彻底删除。
@@ -71,7 +73,7 @@ id 前缀就是列表里显示的 8 位；`session-` 前缀可省略，且必须
 
 | 数据 | 位置 | 谁写 |
 | --- | --- | --- |
-| 文件夹与归入关系 | `<DSH_HOME>/storages/dsh-classify.json` | 本插件（备份 `.bak`） |
+| 文件夹与归入关系 | `<DSH_HOME>/storages/dsh-session-manage.json`（旧名 `dsh-classify.json` 只读兼容） | 本插件（备份 `.bak`） |
 | 会话正文 | `<DSH_HOME>/sessions/<cwd-slug>/<session-id>/` | DSH |
 | 归档集合 | `<DSH_HOME>/storages/workspace.json` 的 `global.archivedSessionIds` | DSH（本插件只读） |
 | 回收站 | `<DSH_HOME>/.session-trash/` | 本插件 |
@@ -79,13 +81,14 @@ id 前缀就是列表里显示的 8 位；`session-` 前缀可省略，且必须
 - 归档 / 取消归档**不直接改文件**，而是调用 Host 的 `workspaceRegistry` 服务，保证侧边栏、Agent 的唤醒门与磁盘状态一致。
 - 删除文件夹只删分类，会话本身与归档状态都不动，里面的会话回到「未分类」。
 - 彻底删除前请确认；要留档先 `/export`。
+- **改名兼容**：`<DSH_HOME>/storages/dsh-classify.json` 与回收站条目里的 `.session-classify.json` 清单都还能读；新数据一律写到 `dsh-session-manage.json` / `.session-manage.json`，旧文件不迁移也不删除。
 
 ## 配置
 
 在 profile 的 `cordis.patch.yml` 里用同 id 覆盖：
 
 ```yaml
-- id: session-classify
+- id: session-manage
   config:
     enabled: true
     dshHome: 'F:\\dsh-home'   # 默认 $DSH_HOME 或 ~/.dsh

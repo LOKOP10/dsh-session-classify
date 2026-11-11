@@ -1,5 +1,5 @@
 /**
- * dsh-session-classify 自测：不碰真实的 `~/.dsh`。
+ * dsh-session-manage 自测：不碰真实的 `~/.dsh`。
  *
  * 覆盖：
  * - 分类数据的新建 / 重名 / 重命名 / 删除 / 分配 / 顺序 / 损坏规整；
@@ -51,7 +51,7 @@ async function test(label, fn) {
  * @returns `{ home, cleanup }`。
  */
 function makeHome() {
-  const home = mkdtempSync(join(tmpdir(), 'dsh-classify-'))
+  const home = mkdtempSync(join(tmpdir(), 'dsh-session-manage-'))
   mkdirSync(join(home, 'sessions'), { recursive: true })
   mkdirSync(join(home, 'storages'), { recursive: true })
   return { home, cleanup: () => rmSync(home, { recursive: true, force: true }) }
@@ -75,7 +75,7 @@ function writeSession(home, cwdSlug, sessionId, events) {
   return path
 }
 
-console.log('dsh-session-classify 自测')
+console.log('dsh-session-manage 自测')
 
 await test('文件夹名规整与校验', () => {
   assert.equal(normalizeFolderName('  抖音   下载器 '), '抖音 下载器')
@@ -185,12 +185,12 @@ await test('多帧 zstd 解压与标题提取', () => {
     const path = writeSession(home, '--tmp--', 'session-abc', [
       { type: 'session', cwd: 'T:\\tmp', createdAt: 1000 },
       { type: 'user/message', data: { content: '帮我把这个项目分类' } },
-      { type: 'session/title', data: { title: '会话分类插件' } },
+      { type: 'session/title', data: { title: 'Session Manage插件' } },
     ])
     const text = decompressFrames(readFileSync(path))
-    assert.match(text, /会话分类插件/u)
+    assert.match(text, /Session Manage插件/u)
     const events = text.trim().split('\n').map(line => JSON.parse(line))
-    assert.equal(titleOf(events), '会话分类插件')
+    assert.equal(titleOf(events), 'Session Manage插件')
   } finally {
     cleanup()
   }
@@ -570,6 +570,51 @@ await test('命令解析与同步动作', async () => {
     assert.equal(trashed.ok, true)
     const listedTrash = runSyncAction({ home, action: 'trash-list' })
     assert.match(listedTrash.text, /session-ddd/u)
+  } finally {
+    cleanup()
+  }
+})
+
+await test('改名兼容：旧数据文件与旧回收站清单仍能读', async () => {
+  const { home, cleanup } = makeHome()
+  try {
+    // 旧版数据文件名（dsh-session-classify 时期）应当仍能读到
+    const legacy = join(home, 'storages', 'dsh-classify.json')
+    writeFileSync(legacy, JSON.stringify({
+      version: 1,
+      folders: [{ id: 'f-11112222', name: '旧文件夹', parentId: null, createdAt: '2026-01-01T00:00:00.000Z' }],
+      assignments: {},
+    }))
+    const loaded = loadStore(home)
+    assert.equal(loaded.store.folders.length, 1, '旧文件应被读到')
+    assert.equal(loaded.store.folders[0].name, '旧文件夹')
+    assert.equal(loaded.path, legacy)
+
+    // 保存一律落到新文件名，旧文件不迁移也不删除
+    saveStore(home, loaded.store)
+    assert.equal(existsSync(storePathOf(home)), true, '新文件名应被写入')
+    assert.equal(existsSync(legacy), true, '旧文件不该被删除')
+    assert.equal(loadStore(home).store.folders.length, 1)
+
+    // 旧回收站条目的清单名也应能读、能恢复
+    writeSession(home, '--F-18752-Documents-a--', 'session-legacy', [
+      { type: 'session', cwd: 'F:\\18752\\Documents\\a', createdAt: 30 },
+      { type: 'session/title', data: { title: '旧的' } },
+    ])
+    const entry = await runAction({ get: () => undefined }, { home, action: 'trash', session: 'session-legacy' })
+    assert.equal(entry.ok, true)
+    // 把新清单改回旧名字，模拟改名之前进回收站的条目
+    const manifestDir = join(home, '.session-trash', entry.name)
+    const renamed = readFileSync(join(manifestDir, '.session-manage.json'), 'utf8')
+    rmSync(join(manifestDir, '.session-manage.json'))
+    writeFileSync(join(manifestDir, '.session-classify.json'), renamed)
+
+    const list = runSyncAction({ home, action: 'trash-list' })
+    assert.match(list.text, /session-legacy/u, '旧清单的条目应出现在列表里')
+    const restored = runAction({ get: () => undefined }, { home, action: 'restore', name: entry.name })
+    const done = await restored
+    assert.equal(done.ok, true, done.text)
+    assert.equal(existsSync(join(home, 'sessions', '--F-18752-Documents-a--', 'session-legacy')), true)
   } finally {
     cleanup()
   }

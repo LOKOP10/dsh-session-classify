@@ -1,8 +1,8 @@
-# dsh-session-classify
+# dsh-session-manage
 
 Sort DeepSeek Harness sessions into **your own folders**, and manage their fate from the same panel: archived conversations, sessions you want gone, and the trash in between.
 
-This plugin is the merge of `dsh-session-classify` and `dsh-session-manager`; the latter is no longer needed — deleting sessions, the trash, and restore all live here.
+> Renamed: this plugin used to be `dsh-session-classify`; on 2026-11-11 it became **`dsh-session-manage`** (plugin id `session-classify` → `session-manage`, display name "Session Manage"). It also absorbs the retired `dsh-session-manager` (deleting sessions, trash, restore); both data files keep their old names readable — see "Where the data lives".
 
 ## Features
 
@@ -16,7 +16,7 @@ The left column is no longer your own folders: it mirrors the sidebar's **worksp
 - Archived conversations are included by default, badged and one click away from being unarchived;
 - Search (title / workspace / id) and All / Active / Archived filters.
 
-> Folder data from earlier versions stays in `<DSH_HOME>/storages/dsh-classify.json` but the UI no longer uses it and it affects no session.
+> Folder data from much earlier versions is read-only compatible; the UI no longer uses it and it affects no session.
 
 **Session management**
 
@@ -35,7 +35,9 @@ Local plugin (junction link, hot reload on edits):
 dsh plugin --profile <profile> add F:/18752/Documents/plugin/classify
 ```
 
-Restart DSH, then **reload the page once** (Ctrl+R); the "Session folders" icon appears in the sidebar.
+Restart DSH, then **reload the page once** (Ctrl+R); the "Session Manage" icon appears in the sidebar.
+
+> Package name and directory name may differ: this checkout is still `classify` (the profile pins `"dsh-session-manage": "link:F:/18752/Documents/plugin/classify"`); the plugin identity is `name` in `package.json`.
 
 > After editing `lib/client.js` you also need a page reload or DSH restart; Host-side hot reload depends on whether the profile's `hmr.root` includes this directory.
 
@@ -43,7 +45,7 @@ Restart DSH, then **reload the page once** (Ctrl+R); the "Session folders" icon 
 
 ### Panel
 
-Open "Session folders" in the sidebar:
+Open "Session Manage" in the sidebar:
 
 - **Left**: all sessions / unfiled / each folder / trash.
 - **Right**: session rows. Checkboxes are for bulk moves; "⋯" expands folder moves, rename, open, archive, delete, delete forever.
@@ -71,7 +73,7 @@ The model can call `session_manage` with `action` in `list` / `trash` / `purge` 
 
 | Data | Location | Writer |
 | --- | --- | --- |
-| Folders and membership | `<DSH_HOME>/storages/dsh-classify.json` | this plugin (`.bak` backup) |
+| Folders and membership | `<DSH_HOME>/storages/dsh-session-manage.json` (legacy `dsh-classify.json` still read) | this plugin (`.bak` backup) |
 | Session logs | `<DSH_HOME>/sessions/<cwd-slug>/<session-id>/` | DSH |
 | Archive set | `global.archivedSessionIds` in `<DSH_HOME>/storages/workspace.json` | DSH (read-only here) |
 | Trash | `<DSH_HOME>/.session-trash/` | this plugin |
@@ -79,13 +81,14 @@ The model can call `session_manage` with `action` in `list` / `trash` / `purge` 
 - Archive / unarchive never edits files directly: they call the Host `workspaceRegistry` service, keeping the sidebar, the agent wake-up gate, and disk state consistent.
 - Deleting a folder deletes only the classification; sessions keep their archive state and become "Unfiled".
 - Confirm before deleting forever; use `/export` first if you want a copy.
+- **Rename compatibility**: `<DSH_HOME>/storages/dsh-classify.json` and the `.session-classify.json` manifest inside old trash entries are still read; new data always goes to `dsh-session-manage.json` / `.session-manage.json`, and old files are neither migrated nor deleted.
 
 ## Configuration
 
 Override the row in the profile's `cordis.patch.yml`:
 
 ```yaml
-- id: session-classify
+- id: session-manage
   config:
     enabled: true
     dshHome: 'F:\\dsh-home'   # defaults to $DSH_HOME or ~/.dsh

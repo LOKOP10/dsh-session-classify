@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "会话分类",
-    "description": "用文件夹给 DSH 会话自行分类，归档的对话也一并管理，并可直接归档 / 取消归档。"
+    "title": "Session Manage",
+    "description": "会话管理面板：按工作区 / 文件夹分类 DSH 会话，批量重命名、归档、删除，附带回收站与恢复。"
   }
 }
