@@ -2,7 +2,7 @@
   "name": "dsh-session-manage",
   "displayName": "Session Manage",
   "description": "会话管理面板：按工作区 / 文件夹分类 DSH 会话，批量重命名、归档、删除，附带回收站与恢复。",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "LOKOP01",
   "type": "module",
   "engines": {
